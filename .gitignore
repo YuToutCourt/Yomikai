@@ -58,3 +58,5 @@ next-env.d.ts
 security-*.log
 
 /app/generated/prisma
+
+.cursor/*
