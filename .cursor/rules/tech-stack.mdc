@@ -1,0 +1,56 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Tech Stack & Conventions
+
+## Core Technologies
+- Next.js 15+ with App Router
+- TypeScript
+- TailwindCSS for styling
+- shadcn/ui for components
+- Prisma for database ORM
+- NextAuth.js for authentication
+
+## Component Guidelines
+- Always use shadcn/ui components as the primary UI library
+- Style components using TailwindCSS classes
+- Follow atomic design principles for component organization
+
+## State Management
+- Use Zustand for client-side state management when needed
+- Prefer server components and server actions over client-side state when possible
+
+## Server Actions
+- Store server actions in `lib/actions` directory
+- Follow naming convention: `feature.action.ts`
+- Example: `lib/actions/auth.action.ts` for authentication actions
+
+## Authentication
+- Use NextAuth.js for authentication
+- Store auth configuration in `lib/auth.ts`
+- Follow NextAuth.js best practices for session management
+
+## Database
+- Use Prisma as the ORM
+- Define schema in `prisma/schema.prisma`
+- Generate types using `prisma generate`
+- Use Prisma Client for database operations
+
+## Project Structure
+```
+app/
+  ├── (auth)/        # Authentication routes
+  ├── (dashboard)/   # Dashboard routes
+  ├── api/           # API routes
+  └── layout.tsx     # Root layout
+lib/
+  ├── actions/       # Server actions
+  ├── auth.ts        # Auth configuration
+  └── utils/         # Utility functions
+components/
+  ├── ui/           # shadcn components
+  └── custom/       # Custom components
+```
+

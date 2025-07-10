@@ -26,7 +26,10 @@ yarn-error.log*
 
 # local env files
 .env*.local
-.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -34,3 +37,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers de sécurité (NE JAMAIS COMMITTER)
+.env.production
+.env
+.env.local
+.env.*.local
+
+# Base de données et backups
+*.db
+*.sqlite
+*.sql.gz
+/backups/
+
+# Uploads (optionnel selon configuration)
+/public/uploads/*/
+
+# Logs de sécurité
+/logs/
+security-*.log
+
+/app/generated/prisma
