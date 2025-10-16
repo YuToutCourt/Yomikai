@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       // Calculer les moyennes globales
       const globalAveragesMap = new Map();
       globalRatingsMap.forEach((ratings, tomeId) => {
-        const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+        const average = ratings.reduce((sum: number, rating: number) => sum + rating, 0) / ratings.length;
         globalAveragesMap.set(tomeId, average);
       });
 

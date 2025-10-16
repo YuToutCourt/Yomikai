@@ -460,6 +460,15 @@ export default function DashboardPage() {
       });
 
       if (!response.ok) {
+        // Récupérer le message d'erreur de l'API
+        let errorMessage = "Impossible de sauvegarder la note.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Si on ne peut pas parser la réponse, utiliser le message par défaut
+        }
+        
         if (process.env.NODE_ENV === 'development') {
           console.error("Erreur lors de la mise à jour de la note:", {
             status: response.status,
@@ -481,17 +490,6 @@ export default function DashboardPage() {
           }
           return manga;
         }));
-        
-        // Récupérer le message d'erreur de l'API
-        let errorMessage = "Impossible de sauvegarder la note.";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error("Impossible de parser l'erreur de l'API");
-          }
-        }
         
         toast.error("Erreur lors de la mise à jour de la note", {
           description: errorMessage,

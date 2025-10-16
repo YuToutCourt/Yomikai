@@ -2,6 +2,9 @@ const nextConfig = {
   // Configuration de base
   reactStrictMode: true,
   
+  // Configuration pour Docker (standalone output)
+  output: 'standalone',
+  
   // Configuration des images
   images: {
     domains: ['localhost', '0.0.0.0'],

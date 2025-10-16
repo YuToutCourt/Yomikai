@@ -9,9 +9,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 --port 3000",
     "start:local": "next start",
-    "lint": "next lint",
-    "download-covers": "tsx scripts/download-covers.ts",
-    "download-specific-cover": "tsx scripts/download-specific-cover.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",

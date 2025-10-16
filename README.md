@@ -51,39 +51,84 @@ Une application web moderne pour gérer votre collection de mangas avec un syst�
 ## 🚀 Installation
 
 ### Prérequis
-- Node.js 18+ 
 - Docker et Docker Compose
 - Git
 
-### 1. Cloner le projet
+### 🐳 Installation avec Docker (Recommandé)
+
+#### 1. Cloner le projet
 ```bash
 git clone <repository-url>
 cd Yomikai
 ```
 
-### 2. Installer les dépendances
+#### 2. Configuration de l'environnement
 ```bash
-npm install
-```
-
-### 3. Configuration de l'environnement
-```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 Éditez le fichier `.env` avec vos configurations :
 ```env
-DATABASE_URL="mysql://root:root@localhost:3306/yomikai"
+# Configuration Docker
+DB_ROOT_PASSWORD="1234"
+DB_NAME="yomikai"
+DB_USER="yomikai"
+DB_PASSWORD="1234"
+
+# Configuration NextAuth
 NEXTAUTH_SECRET="votre-secret-ici"
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
-### 4. Démarrer la base de données
+#### 3. Démarrage automatique
 ```bash
-docker-compose up -d
+# Linux/Mac
+chmod +x docker-start.sh
+./docker-start.sh
+
+# Windows
+docker-start.bat
 ```
 
-### 5. Configuration de la base de données
+#### 4. Démarrage manuel
+```bash
+# Construire et démarrer
+docker-compose up -d
+
+# Exécuter les migrations
+docker-compose exec app npx prisma migrate deploy
+```
+
+L'application sera disponible sur [http://localhost:3000](http://localhost:3000)
+
+### 💻 Installation en développement local
+
+#### Prérequis
+- Node.js 18+ 
+- Docker et Docker Compose
+
+#### 1. Cloner le projet
+```bash
+git clone <repository-url>
+cd Yomikai
+```
+
+#### 2. Installer les dépendances
+```bash
+npm install
+```
+
+#### 3. Configuration de l'environnement
+```bash
+cp env.example .env
+```
+
+#### 4. Démarrer la base de données
+```bash
+docker-compose up -d mariadb
+```
+
+#### 5. Configuration de la base de données
 ```bash
 # Générer le client Prisma
 npx prisma generate
@@ -92,12 +137,10 @@ npx prisma generate
 npx prisma migrate dev
 ```
 
-### 6. Lancer l'application
+#### 6. Lancer l'application
 ```bash
 npm run dev
 ```
-
-L'application sera disponible sur [http://localhost:3000](http://localhost:3000)
 
 ## 📊 Structure de la Base de Données
 
