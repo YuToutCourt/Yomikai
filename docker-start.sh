@@ -10,7 +10,7 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Vérifier si Docker Compose est installé
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+if ! docker compose version &> /dev/null; then
     echo "❌ Docker Compose n'est pas installé. Veuillez installer Docker Compose d'abord."
     exit 1
 fi
@@ -25,10 +25,10 @@ fi
 
 # Construire et démarrer les services
 echo "🔨 Construction des images Docker..."
-docker-compose build
+docker compose build
 
 echo "🚀 Démarrage des services..."
-docker-compose up -d
+docker compose up -d
 
 # Attendre que la base de données soit prête
 echo "⏳ Attente du démarrage de la base de données..."
@@ -36,13 +36,13 @@ sleep 10
 
 # Exécuter les migrations Prisma
 echo "🗄️  Exécution des migrations Prisma..."
-docker-compose exec app npx prisma migrate deploy
+docker compose exec app npx prisma migrate deploy
 
 echo "✅ Yomikai est maintenant disponible sur http://localhost:3000"
 echo "📊 Base de données MariaDB disponible sur localhost:3306"
 echo ""
 echo "📋 Commandes utiles:"
-echo "  - Arrêter: docker-compose down"
-echo "  - Voir les logs: docker-compose logs -f"
-echo "  - Redémarrer: docker-compose restart"
-echo "  - Accéder au conteneur app: docker-compose exec app sh"
+echo "  - Arrêter: docker compose down"
+echo "  - Voir les logs: docker compose logs -f"
+echo "  - Redémarrer: docker compose restart"
+echo "  - Accéder au conteneur app: docker compose exec app sh"

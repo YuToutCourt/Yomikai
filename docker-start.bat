@@ -20,10 +20,10 @@ if not exist .env (
 
 REM Construire et démarrer les services
 echo 🔨 Construction des images Docker...
-docker-compose build
+docker compose build
 
 echo 🚀 Démarrage des services...
-docker-compose up -d
+docker compose up -d
 
 REM Attendre que la base de données soit prête
 echo ⏳ Attente du démarrage de la base de données...
@@ -31,14 +31,14 @@ timeout /t 10 /nobreak >nul
 
 REM Exécuter les migrations Prisma
 echo 🗄️  Exécution des migrations Prisma...
-docker-compose exec app npx prisma migrate deploy
+docker compose exec app npx prisma migrate deploy
 
 echo ✅ Yomikai est maintenant disponible sur http://localhost:3000
 echo 📊 Base de données MariaDB disponible sur localhost:3306
 echo.
 echo 📋 Commandes utiles:
-echo   - Arrêter: docker-compose down
-echo   - Voir les logs: docker-compose logs -f
-echo   - Redémarrer: docker-compose restart
-echo   - Accéder au conteneur app: docker-compose exec app sh
+echo   - Arrêter: docker compose down
+echo   - Voir les logs: docker compose logs -f
+echo   - Redémarrer: docker compose restart
+echo   - Accéder au conteneur app: docker compose exec app sh
 pause
