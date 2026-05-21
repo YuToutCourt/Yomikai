@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { writeFile, mkdir } from "fs/promises";
+
+export const dynamic = 'force-dynamic';
 import path from "path";
 
 // Types pour la création de manga

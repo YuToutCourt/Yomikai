@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
 import { writeFile, mkdir } from "fs/promises";
+
+export const dynamic = 'force-dynamic';
 import path from "path";
 
 const prisma = new PrismaClient();
