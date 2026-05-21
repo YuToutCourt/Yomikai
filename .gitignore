@@ -60,3 +60,4 @@ security-*.log
 /app/generated/prisma
 
 .cursor/*
+TODO.txt
