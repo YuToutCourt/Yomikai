@@ -30,7 +30,8 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <SessionProvider>
-        {children}
+          {children}
+
           <Toaster 
             position="top-right"
             richColors

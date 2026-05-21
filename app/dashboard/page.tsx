@@ -576,6 +576,13 @@ export default function DashboardPage() {
               
               <Button 
                 className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                onClick={() => router.push("/community")}
+              >
+                Communauté
+              </Button>
+
+              <Button 
+                className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20"
                 onClick={() => router.push("/profile")}
               >
                 Mon Profil

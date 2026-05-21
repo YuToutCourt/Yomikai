@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { checkRateLimit, sanitizeInput, validateStrongPassword } from "@/lib/security";
 
 export async function POST(request: NextRequest) {
   try {
+    // Vérifier que seul un admin peut créer des comptes
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.isadmin) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
     // Rate limiting pour prévenir les attaques par force brute
     const rateLimitCheck = checkRateLimit(request, 5, 15 * 60 * 1000); // 5 tentatives par 15 min
     if (!rateLimitCheck.success) {

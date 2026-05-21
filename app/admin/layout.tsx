@@ -114,12 +114,22 @@ export default function AdminLayout({
               </div>
             </div>
 
-            <Button 
-              className="bg-[#CE6A6B] hover:bg-[#B55A5B] text-white border-0"
-              onClick={handleSignOut}
-            >
-              Se déconnecter
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                className="text-white/80 hover:text-white"
+                onClick={() => router.push('/community')}
+              >
+                Communauté
+              </Button>
+
+              <Button 
+                className="bg-[#CE6A6B] hover:bg-[#B55A5B] text-white border-0"
+                onClick={handleSignOut}
+              >
+                Se déconnecter
+              </Button>
+            </div>
           </div>
         </div>
       </header>

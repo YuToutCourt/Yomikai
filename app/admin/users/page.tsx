@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import ImageUpload from "@/components/admin/ImageUpload";
 import { 
   Search, 
   Edit, 
@@ -342,13 +343,13 @@ export default function UsersPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-userlogo" className="text-white">Logo de l'utilisateur</Label>
-              <Input
-                id="edit-userlogo"
-                type="url"
-                value={editData.userlogo}
-                onChange={(e) => setEditData({...editData, userlogo: e.target.value})}
-                className="bg-white/10 border-white/20 text-white"
+              <ImageUpload
+                onImageUpload={(url) => setEditData({ ...editData, userlogo: url })}
+                currentImage={editData.userlogo}
+                uploadType="user"
+                className="bg-white/10 border-white/20"
+                label="Logo de l'utilisateur"
+                placeholder="URL de l'image ou upload"
               />
             </div>
           </div>
@@ -422,13 +423,13 @@ export default function UsersPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="add-userlogo" className="text-white">Logo de l'utilisateur</Label>
-              <Input
-                id="add-userlogo"
-                type="url"
-                value={addData.userlogo}
-                onChange={(e) => setAddData({...addData, userlogo: e.target.value})}
-                className="bg-white/10 border-white/20 text-white"
+              <ImageUpload
+                onImageUpload={(url) => setAddData({ ...addData, userlogo: url })}
+                currentImage={addData.userlogo}
+                uploadType="user"
+                className="bg-white/10 border-white/20"
+                label="Logo de l'utilisateur"
+                placeholder="URL de l'image ou upload"
               />
             </div>
           </div>
