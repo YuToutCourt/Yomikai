@@ -43,7 +43,8 @@ function LoginPageContent() {
       if (result?.error) {
         setError("Nom d'utilisateur ou mot de passe incorrect");
       } else {
-        router.push(result?.url ?? callbackUrl);
+        // Utiliser callbackUrl au lieu de result?.url qui peut contenir localhost
+        router.push(callbackUrl);
       }
     } catch (error) {
       setError("Une erreur est survenue");
