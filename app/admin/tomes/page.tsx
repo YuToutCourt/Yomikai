@@ -26,6 +26,8 @@ export default function ManageTomesPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchTitle, setSearchTitle] = useState("");
+  const [searchNumero, setSearchNumero] = useState("");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTome, setSelectedTome] = useState<Tome | null>(null);
   const [editData, setEditData] = useState({
@@ -36,13 +38,30 @@ export default function ManageTomesPage() {
   });
 
   useEffect(() => {
-    fetchTomes();
+    fetchTomes(page);
   }, [page]);
 
-  const fetchTomes = async () => {
+  const buildQueryParams = (pageNumber: number) => {
+    const params = new URLSearchParams({
+      page: pageNumber.toString(),
+      limit: PAGE_SIZE.toString(),
+    });
+
+    if (searchTitle.trim()) {
+      params.append("mangaTitle", searchTitle.trim());
+    }
+    if (searchNumero.trim()) {
+      params.append("tomeNumber", searchNumero.trim());
+    }
+
+    return params.toString();
+  };
+
+  const fetchTomes = async (pageNumber = page) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/tomes?page=${page}&limit=${PAGE_SIZE}`);
+      const query = buildQueryParams(pageNumber);
+      const response = await fetch(`/api/admin/tomes?${query}`);
       const data = await response.json();
       if (response.ok) {
         setTomes(data.data);
@@ -54,6 +73,24 @@ export default function ManageTomesPage() {
       toast.error("Erreur de connexion");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    if (page === 1) {
+      fetchTomes(1);
+    } else {
+      setPage(1);
+    }
+  };
+
+  const handleResetSearch = () => {
+    setSearchTitle("");
+    setSearchNumero("");
+    if (page === 1) {
+      fetchTomes(1);
+    } else {
+      setPage(1);
     }
   };
 
@@ -104,6 +141,45 @@ export default function ManageTomesPage() {
         <div className="text-white/90 text-lg">Chargement...</div>
       ) : (
         <>
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div>
+              <Label htmlFor="search-title" className="text-white mb-2 block">Recherche manga</Label>
+              <Input
+                id="search-title"
+                placeholder="Titre du manga"
+                value={searchTitle}
+                onChange={(e) => setSearchTitle(e.target.value)}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+              />
+            </div>
+            <div>
+              <Label htmlFor="search-numero" className="text-white mb-2 block">Numéro du tome</Label>
+              <Input
+                id="search-numero"
+                type="number"
+                placeholder="Ex: 1"
+                value={searchNumero}
+                onChange={(e) => setSearchNumero(e.target.value)}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <Button
+                className="w-full bg-[#CE6A6B] text-white hover:bg-[#B55A5B]"
+                onClick={handleSearch}
+              >
+                Rechercher
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full border-white/20 text-white hover:bg-white/10"
+                onClick={handleResetSearch}
+              >
+                Réinitialiser
+              </Button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {tomes.map((tome) => (
               <Card key={tome.id} className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/15 transition-colors">

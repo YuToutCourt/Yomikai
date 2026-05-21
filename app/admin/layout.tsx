@@ -50,7 +50,7 @@ export default function AdminLayout({
       }
       
       await signOut({ 
-        callbackUrl: "/login",
+        callbackUrl: `${window.location.origin}/login`,
         redirect: true 
       });
     } catch (error) {
@@ -93,7 +93,7 @@ export default function AdminLayout({
       {/* Header */}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -127,7 +127,7 @@ export default function AdminLayout({
       {/* Navigation */}
       <nav className="bg-white/5 backdrop-blur-md border-b border-white/10">
         <div className="container mx-auto px-4 py-2">
-          <div className="flex space-x-1">
+          <div className="flex flex-wrap gap-2">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;

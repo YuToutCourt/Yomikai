@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    // Rediriger la page racine vers le dashboard si connecté
+    // Rediriger la page racine vers la page de connexion
     if (req.nextUrl.pathname === "/") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return NextResponse.redirect(new URL("/login", req.url));
     }
   },
   {

@@ -316,7 +316,7 @@ export default function DashboardPage() {
       }
       
       await signOut({ 
-        callbackUrl: "/login",
+        callbackUrl: `${window.location.origin}/login`,
         redirect: true 
       });
     } catch (error) {
@@ -556,7 +556,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-[#CE6A6B] to-[#EBACA2] rounded-full flex items-center justify-center">
                 <span className="text-white text-lg">🌸</span>
@@ -564,10 +564,10 @@ export default function DashboardPage() {
               <h1 className="text-2xl font-bold text-white">Yomimono</h1>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center items-stretch">
               {session.user?.isadmin && (
                 <Button 
-                  className="bg-[#CE6A6B] hover:bg-[#B55A5B] text-white border-0"
+                  className="w-full sm:w-auto bg-[#CE6A6B] hover:bg-[#B55A5B] text-white border-0"
                   onClick={() => router.push("/admin/add-manga")}
                 >
                   Page Admin
@@ -575,14 +575,14 @@ export default function DashboardPage() {
               )}
               
               <Button 
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20"
                 onClick={() => router.push("/profile")}
               >
                 Mon Profil
               </Button>
               
               <Button 
-                className="bg-[#CE6A6B] hover:bg-[#B55A5B] text-white border-0"
+                className="w-full sm:w-auto bg-[#CE6A6B] hover:bg-[#B55A5B] text-white border-0"
                 onClick={handleSignOut}
               >
                 Se déconnecter

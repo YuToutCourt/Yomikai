@@ -113,7 +113,7 @@ export default function ProfilePage() {
       {/* Header */}
       <header className="bg-white/10 backdrop-blur-md border-b border-white/20">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -191,11 +191,11 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Submit Button */}
-                <div className="flex justify-end">
+                <div className="flex justify-center md:justify-end">
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-[#CE6A6B] hover:bg-[#B55A5B] text-white"
+                    className="w-full md:w-auto bg-[#CE6A6B] hover:bg-[#B55A5B] text-white"
                   >
                     {loading ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

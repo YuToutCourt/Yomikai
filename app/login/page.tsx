@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,15 +23,17 @@ export default function LoginPage() {
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté
     getSession().then((session) => {
       if (session) {
-        router.push("/dashboard");
+        router.replace(callbackUrl);
       }
     });
-  }, [router]);
+  }, [callbackUrl, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +46,13 @@ export default function LoginPage() {
         username: loginData.username,
         password: loginData.password,
         redirect: false,
+        callbackUrl,
       });
 
       if (result?.error) {
         setError("Nom d'utilisateur ou mot de passe incorrect");
       } else {
-        router.push("/dashboard");
+        router.push(result?.url ?? callbackUrl);
       }
     } catch (error) {
       setError("Une erreur est survenue");

@@ -122,9 +122,23 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
+    const mangaTitle = searchParams.get("mangaTitle")?.trim() || "";
+    const tomeNumber = searchParams.get("tomeNumber")?.trim() || "";
+
+    const where: any = {};
+    if (mangaTitle) {
+      where.manga = {
+        title: { contains: mangaTitle },
+      };
+    }
+    const tomeNumberInt = parseInt(tomeNumber, 10);
+    if (tomeNumber && !Number.isNaN(tomeNumberInt)) {
+      where.numero = tomeNumberInt;
+    }
 
     const [tomes, total] = await Promise.all([
       prisma.tome.findMany({
+        where,
         skip,
         take: limit,
         orderBy: [
@@ -133,7 +147,7 @@ export async function GET(request: NextRequest) {
         ],
         include: { manga: { select: { title: true } } },
       }),
-      prisma.tome.count(),
+      prisma.tome.count({ where }),
     ]);
 
     return NextResponse.json({
