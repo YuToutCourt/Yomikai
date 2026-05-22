@@ -148,9 +148,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error("Erreur lors de l'upload:", error);
-    }
+    console.error("Erreur lors de l'upload:", error);
     return NextResponse.json(
       { error: "Erreur lors de l'upload" },
       { status: 500 }
