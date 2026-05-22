@@ -29,6 +29,6 @@ export const config = {
     "/admin/:path*",
     "/profile/:path*",
     // Exclure les routes d'authentification et les assets
-    "/((?!api|_next/static|_next/image|favicon.ico|login|register).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|login|register|uploads).*)",
   ],
 }; 

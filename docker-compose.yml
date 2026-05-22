@@ -34,8 +34,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Volume pour les uploads d'images
-      - uploads_data:/app/public/uploads
+      # Bind mount pour les uploads d'images (permissions gérées par l'hôte)
+      - ./uploads:/app/public/uploads
     networks:
       - yomikai_network
     depends_on:
@@ -44,7 +44,6 @@ services:
 
 volumes:
   mariadb_data:
-  uploads_data:
 
 networks:
   yomikai_network:
