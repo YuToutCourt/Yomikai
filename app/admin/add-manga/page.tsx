@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Plus, ArrowLeft } from "lucide-react";
+import { BookOpen, Plus, ArrowLeft, Layers, X, Upload } from "lucide-react";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { toast } from "sonner";
 
@@ -63,10 +63,29 @@ export default function AddMangaPage() {
     coverImage: ""
   });
 
+  // État pour upload en masse
+  const [bulkSelectedMangaId, setBulkSelectedMangaId] = useState<string>("");
+  const [bulkImages, setBulkImages] = useState<Array<{ file: File; preview: string }>>([]);
+  const [bulkData, setBulkData] = useState({ prix: "", editeur: "" });
+  const [bulkStartingTome, setBulkStartingTome] = useState<number>(1);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const bulkFileInputRef = useRef<HTMLInputElement>(null);
+
   // Charger les mangas existants
   useEffect(() => {
     fetchMangas();
   }, []);
+
+  // Recalculer le tome de départ quand le manga change
+  useEffect(() => {
+    if (!bulkSelectedMangaId) return;
+    const manga = mangas.find(m => m.id.toString() === bulkSelectedMangaId);
+    if (!manga || manga.tomes.length === 0) {
+      setBulkStartingTome(1);
+    } else {
+      setBulkStartingTome(Math.max(...manga.tomes.map(t => t.numero)) + 1);
+    }
+  }, [bulkSelectedMangaId, mangas]);
 
   const fetchMangas = async () => {
     try {
@@ -208,6 +227,77 @@ export default function AddMangaPage() {
     }
   };
 
+  const handleBulkFilesSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+      .filter(f => {
+        if (!["image/jpeg", "image/png", "image/webp"].includes(f.type)) {
+          toast.error(`${f.name} : type non supporté`);
+          return false;
+        }
+        if (f.size > 5 * 1024 * 1024) {
+          toast.error(`${f.name} : trop volumineux (max 5MB)`);
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    setBulkImages(files.map(file => ({ file, preview: URL.createObjectURL(file) })));
+  };
+
+  const removeBulkImage = (index: number) => {
+    setBulkImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bulkSelectedMangaId || bulkImages.length === 0) return;
+
+    setBulkLoading(true);
+    try {
+      const imageBase64s = await Promise.all(
+        bulkImages.map(({ file }) =>
+          new Promise<string>(resolve => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          })
+        )
+      );
+
+      const response = await fetch("/api/admin/tomes/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mangaId: parseInt(bulkSelectedMangaId),
+          prix: bulkData.prix,
+          editeur: bulkData.editeur,
+          startingTome: bulkStartingTome,
+          images: imageBase64s,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success(`${result.created} tome(s) ajouté(s) avec succès !`, { icon: "📚" });
+        result.errors?.forEach((err: { tome: number; error: string }) => {
+          toast.error(`Tome ${err.tome} : ${err.error}`);
+        });
+        setBulkImages([]);
+        setBulkData({ prix: "", editeur: "" });
+        if (bulkFileInputRef.current) bulkFileInputRef.current.value = "";
+        await fetchMangas();
+      } else {
+        toast.error(result.error || "Erreur lors de l'upload en masse");
+      }
+    } catch {
+      toast.error("Erreur lors de l'upload en masse");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#212E53] to-[#4A919E] p-4">
       <div className="max-w-4xl mx-auto">
@@ -229,7 +319,7 @@ export default function AddMangaPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-md">
+          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-md">
             <TabsTrigger value="manga" className="text-white data-[state=active]:bg-[#CE6A6B]">
               <Plus className="w-4 h-4 mr-2" />
               Nouveau Manga
@@ -237,6 +327,10 @@ export default function AddMangaPage() {
             <TabsTrigger value="tome" className="text-white data-[state=active]:bg-[#CE6A6B]">
               <BookOpen className="w-4 h-4 mr-2" />
               Ajouter un Tome
+            </TabsTrigger>
+            <TabsTrigger value="bulk" className="text-white data-[state=active]:bg-[#CE6A6B]">
+              <Layers className="w-4 h-4 mr-2" />
+              Upload en masse
             </TabsTrigger>
           </TabsList>
 
@@ -439,6 +533,155 @@ export default function AddMangaPage() {
                     className="w-full bg-[#CE6A6B] hover:bg-[#B55A5B] text-white"
                   >
                     {loading ? "Ajout en cours..." : "Ajouter le tome"}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          {/* Tab Upload en masse */}
+          <TabsContent value="bulk" className="mt-6">
+            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+              <CardHeader>
+                <CardTitle className="text-white">Upload en masse de couvertures</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleBulkSubmit} className="space-y-6">
+                  {/* Manga selector */}
+                  <div className="space-y-2">
+                    <Label className="text-white">Sélectionner un manga *</Label>
+                    <Select value={bulkSelectedMangaId} onValueChange={setBulkSelectedMangaId}>
+                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                        <SelectValue placeholder="Choisissez un manga..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mangas.map((manga) => (
+                          <SelectItem key={manga.id} value={manga.id.toString()}>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gradient-to-br from-[#CE6A6B] to-[#EBACA2] rounded overflow-hidden">
+                                {manga.coverImage ? (
+                                  <img src={manga.coverImage} alt={manga.title} className="w-full h-full object-cover" />
+                                ) : (
+                                  <BookOpen className="w-full h-full p-1 text-white" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium truncate">{manga.title}</div>
+                                {manga.author && (
+                                  <div className="text-xs text-muted-foreground truncate">{manga.author}</div>
+                                )}
+                              </div>
+                              <Badge variant="secondary" className="text-xs">
+                                {manga.tomes.length} tomes
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Separator className="bg-white/20" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-white">Prix *</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={bulkData.prix}
+                        onChange={(e) => setBulkData({ ...bulkData, prix: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        placeholder="7.50"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Éditeur *</Label>
+                      <Input
+                        value={bulkData.editeur}
+                        onChange={(e) => setBulkData({ ...bulkData, editeur: e.target.value })}
+                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                        placeholder="Glénat, Ki-oon..."
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white">Premier tome</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={bulkStartingTome}
+                        onChange={(e) => setBulkStartingTome(parseInt(e.target.value) || 1)}
+                        className="bg-white/10 border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Zone de sélection des fichiers */}
+                  <div className="space-y-2">
+                    <Label className="text-white">Images de couverture</Label>
+                    <div
+                      className="border-2 border-dashed border-white/30 rounded-lg p-8 text-center cursor-pointer hover:border-[#EBACA2]/60 hover:bg-white/5 transition-colors"
+                      onClick={() => bulkFileInputRef.current?.click()}
+                    >
+                      <Upload className="w-8 h-8 text-white/50 mx-auto mb-2" />
+                      <p className="text-white/70 text-sm">Cliquez pour sélectionner plusieurs images</p>
+                      <p className="text-white/40 text-xs mt-1">
+                        JPG, PNG, WebP · Max 5MB par image · Triées par nom de fichier
+                      </p>
+                    </div>
+                    <input
+                      ref={bulkFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      onChange={handleBulkFilesSelect}
+                      className="hidden"
+                    />
+                  </div>
+
+                  {/* Grille de prévisualisation */}
+                  {bulkImages.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-white">
+                        {bulkImages.length} image(s) — Tomes {bulkStartingTome} à {bulkStartingTome + bulkImages.length - 1}
+                      </Label>
+                      <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
+                        {bulkImages.map(({ preview }, i) => (
+                          <div key={i} className="relative group">
+                            <div className="aspect-[2/3] bg-white/10 rounded-lg overflow-hidden">
+                              <img
+                                src={preview}
+                                alt={`Tome ${bulkStartingTome + i}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 rounded-b-lg py-1 text-center">
+                              <span className="text-white text-xs font-medium">T.{bulkStartingTome + i}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeBulkImage(i)}
+                              className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center hidden group-hover:flex"
+                            >
+                              <X className="w-3 h-3 text-white" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={bulkLoading || !bulkSelectedMangaId || bulkImages.length === 0}
+                    className="w-full bg-[#CE6A6B] hover:bg-[#B55A5B] text-white"
+                  >
+                    {bulkLoading
+                      ? "Création en cours..."
+                      : bulkImages.length > 0
+                        ? `Ajouter ${bulkImages.length} tome(s)`
+                        : "Sélectionnez des images"}
                   </Button>
                 </form>
               </CardContent>
