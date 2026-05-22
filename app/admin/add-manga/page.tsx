@@ -66,7 +66,6 @@ export default function AddMangaPage() {
   // État pour upload en masse
   const [bulkSelectedMangaId, setBulkSelectedMangaId] = useState<string>("");
   const [bulkImages, setBulkImages] = useState<Array<{ file: File; preview: string }>>([]);
-  const [bulkStartingTome, setBulkStartingTome] = useState<number>(1);
   const [bulkLoading, setBulkLoading] = useState(false);
   const bulkFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -74,17 +73,6 @@ export default function AddMangaPage() {
   useEffect(() => {
     fetchMangas();
   }, []);
-
-  // Recalculer le tome de départ quand le manga change
-  useEffect(() => {
-    if (!bulkSelectedMangaId) return;
-    const manga = mangas.find(m => m.id.toString() === bulkSelectedMangaId);
-    if (!manga || manga.tomes.length === 0) {
-      setBulkStartingTome(1);
-    } else {
-      setBulkStartingTome(Math.max(...manga.tomes.map(t => t.numero)) + 1);
-    }
-  }, [bulkSelectedMangaId, mangas]);
 
   const fetchMangas = async () => {
     try {
@@ -269,7 +257,6 @@ export default function AddMangaPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mangaId: parseInt(bulkSelectedMangaId),
-          startingTome: bulkStartingTome,
           images: imageBase64s,
         }),
       });
@@ -277,7 +264,7 @@ export default function AddMangaPage() {
       const result = await response.json();
 
       if (response.ok) {
-        toast.success(`${result.created} tome(s) ajouté(s) avec succès !`, { icon: "📚" });
+        toast.success(`${result.updated} couverture(s) mise(s) à jour !`, { icon: "📚" });
         result.errors?.forEach((err: { tome: number; error: string }) => {
           toast.error(`Tome ${err.tome} : ${err.error}`);
         });
@@ -576,16 +563,15 @@ export default function AddMangaPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-white">Premier tome</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={bulkStartingTome}
-                      onChange={(e) => setBulkStartingTome(parseInt(e.target.value) || 1)}
-                      className="bg-white/10 border-white/20 text-white"
-                    />
-                  </div>
+                  {bulkSelectedMangaId && (() => {
+                    const manga = mangas.find(m => m.id.toString() === bulkSelectedMangaId);
+                    return manga ? (
+                      <p className="text-white/60 text-sm">
+                        Ce manga a <span className="text-white font-medium">{manga.tomes.length} tome(s)</span>.
+                        Les images seront assignées dans l&apos;ordre du tome 1 au tome {manga.tomes.length}.
+                      </p>
+                    ) : null;
+                  })()}
 
                   {/* Zone de sélection des fichiers */}
                   <div className="space-y-2">
@@ -611,36 +597,43 @@ export default function AddMangaPage() {
                   </div>
 
                   {/* Grille de prévisualisation */}
-                  {bulkImages.length > 0 && (
-                    <div className="space-y-2">
-                      <Label className="text-white">
-                        {bulkImages.length} image(s) — Tomes {bulkStartingTome} à {bulkStartingTome + bulkImages.length - 1}
-                      </Label>
-                      <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
-                        {bulkImages.map(({ preview }, i) => (
-                          <div key={i} className="relative group">
-                            <div className="aspect-[2/3] bg-white/10 rounded-lg overflow-hidden">
-                              <img
-                                src={preview}
-                                alt={`Tome ${bulkStartingTome + i}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 rounded-b-lg py-1 text-center">
-                              <span className="text-white text-xs font-medium">T.{bulkStartingTome + i}</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeBulkImage(i)}
-                              className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center hidden group-hover:flex"
-                            >
-                              <X className="w-3 h-3 text-white" />
-                            </button>
-                          </div>
-                        ))}
+                  {bulkImages.length > 0 && (() => {
+                    const manga = mangas.find(m => m.id.toString() === bulkSelectedMangaId);
+                    const tomesSorted = manga ? [...manga.tomes].sort((a, b) => a.numero - b.numero) : [];
+                    return (
+                      <div className="space-y-2">
+                        <Label className="text-white">
+                          {bulkImages.length} image(s) sélectionnée(s)
+                        </Label>
+                        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-3">
+                          {bulkImages.map(({ preview }, i) => {
+                            const tomeNumero = tomesSorted[i]?.numero ?? `?`;
+                            return (
+                              <div key={i} className="relative group">
+                                <div className="aspect-[2/3] bg-white/10 rounded-lg overflow-hidden">
+                                  <img
+                                    src={preview}
+                                    alt={`Tome ${tomeNumero}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 bg-black/60 rounded-b-lg py-1 text-center">
+                                  <span className="text-white text-xs font-medium">T.{tomeNumero}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeBulkImage(i)}
+                                  className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full items-center justify-center hidden group-hover:flex"
+                                >
+                                  <X className="w-3 h-3 text-white" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   <Button
                     type="submit"
@@ -648,9 +641,9 @@ export default function AddMangaPage() {
                     className="w-full bg-[#CE6A6B] hover:bg-[#B55A5B] text-white"
                   >
                     {bulkLoading
-                      ? "Création en cours..."
+                      ? "Mise à jour en cours..."
                       : bulkImages.length > 0
-                        ? `Ajouter ${bulkImages.length} tome(s)`
+                        ? `Mettre à jour ${bulkImages.length} couverture(s)`
                         : "Sélectionnez des images"}
                   </Button>
                 </form>

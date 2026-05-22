@@ -25,9 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { mangaId, startingTome, images } = body;
-    const prix = "0";
-    const editeur = "Non renseigné";
+    const { mangaId, images } = body;
 
     if (!mangaId || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
@@ -37,82 +35,66 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Maximum 50 images à la fois" }, { status: 400 });
     }
 
-    const manga = await prisma.manga.findUnique({ where: { id: Number(mangaId) } });
-    if (!manga) {
-      return NextResponse.json({ error: "Manga non trouvé" }, { status: 404 });
+    // Récupérer les tomes existants triés par numéro
+    const tomes = await prisma.tome.findMany({
+      where: { mangaId: Number(mangaId) },
+      orderBy: { numero: "asc" },
+    });
+
+    if (tomes.length === 0) {
+      return NextResponse.json({ error: "Ce manga n'a aucun tome" }, { status: 400 });
     }
 
     const uploadPath = join(process.cwd(), "public", "uploads", "mangas", "tomes");
     await mkdir(uploadPath, { recursive: true });
 
-    const created = [];
+    const updated = [];
     const errors: { tome: number; error: string }[] = [];
+    const count = Math.min(images.length, tomes.length);
 
-    for (let i = 0; i < images.length; i++) {
-      const tomeNum = Number(startingTome) + i;
-
-      const existing = await prisma.tome.findFirst({
-        where: { mangaId: Number(mangaId), numero: tomeNum },
-      });
-
-      if (existing) {
-        errors.push({ tome: tomeNum, error: `Tome ${tomeNum} existe déjà` });
-        continue;
-      }
-
-      let coverImagePath: string | null = null;
-
-      if (images[i]) {
-        try {
-          const base64Data = (images[i] as string).replace(/^data:image\/[a-z]+;base64,/, "");
-          const buffer = Buffer.from(base64Data, "base64");
-
-          if (buffer.length > 5 * 1024 * 1024) {
-            errors.push({ tome: tomeNum, error: "Image trop volumineuse (max 5MB)" });
-            continue;
-          }
-
-          const mimeType = getImageMimeType(buffer);
-          if (!mimeType) {
-            errors.push({ tome: tomeNum, error: "Type d'image non supporté" });
-            continue;
-          }
-
-          const processedBuffer = await sharp(new Uint8Array(buffer))
-            .resize(200, 300, { fit: "cover" })
-            .jpeg({ quality: 80 })
-            .toBuffer();
-
-          const fileName = `${uuidv4()}.jpeg`;
-          await writeFile(join(uploadPath, fileName), Buffer.from(processedBuffer));
-          coverImagePath = `/uploads/mangas/tomes/${fileName}`;
-        } catch {
-          errors.push({ tome: tomeNum, error: "Erreur traitement image" });
-          continue;
-        }
-      }
+    for (let i = 0; i < count; i++) {
+      const tome = tomes[i];
 
       try {
-        const tome = await prisma.tome.create({
-          data: {
-            numero: tomeNum,
-            prix,
-            editeur,
-            coverImage: coverImagePath,
-            mangaId: Number(mangaId),
-          },
+        const base64Data = (images[i] as string).replace(/^data:image\/[a-z]+;base64,/, "");
+        const buffer = Buffer.from(base64Data, "base64");
+
+        if (buffer.length > 5 * 1024 * 1024) {
+          errors.push({ tome: tome.numero, error: "Image trop volumineuse (max 5MB)" });
+          continue;
+        }
+
+        const mimeType = getImageMimeType(buffer);
+        if (!mimeType) {
+          errors.push({ tome: tome.numero, error: "Type d'image non supporté" });
+          continue;
+        }
+
+        const processedBuffer = await sharp(new Uint8Array(buffer))
+          .resize(200, 300, { fit: "cover" })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+
+        const fileName = `${uuidv4()}.jpeg`;
+        await writeFile(join(uploadPath, fileName), Buffer.from(processedBuffer));
+        const coverImagePath = `/uploads/mangas/tomes/${fileName}`;
+
+        await prisma.tome.update({
+          where: { id: tome.id },
+          data: { coverImage: coverImagePath },
         });
-        created.push(tome);
+
+        updated.push({ id: tome.id, numero: tome.numero });
       } catch {
-        errors.push({ tome: tomeNum, error: "Erreur création en base de données" });
+        errors.push({ tome: tome.numero, error: "Erreur traitement image" });
       }
     }
 
-    return NextResponse.json({ created: created.length, errors, tomes: created });
+    return NextResponse.json({ updated: updated.length, errors, tomes: updated });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Erreur bulk tomes:", error);
+      console.error("Erreur bulk covers:", error);
     }
-    return NextResponse.json({ error: "Erreur lors de la création des tomes" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur lors de la mise à jour des couvertures" }, { status: 500 });
   }
 }
