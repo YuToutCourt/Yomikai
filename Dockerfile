@@ -1,4 +1,4 @@
-FROM node:18-slim AS base
+FROM node:20-slim AS base
 
 # Installer openssl
 RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
@@ -35,8 +35,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads
+RUN mkdir -p public/uploads/mangas/covers public/uploads/mangas/tomes public/uploads/users/logos && \
+    chown -R nextjs:nodejs public
 
 RUN mkdir .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
