@@ -131,7 +131,9 @@ export async function POST(request: NextRequest) {
 
     // Sauvegarder le fichier
     const filePath = join(uploadPath, fileName);
+    console.log("[upload] cwd:", process.cwd(), "| filePath:", filePath);
     await writeFile(filePath, processedBuffer);
+    console.log("[upload] fichier écrit avec succès:", filePath);
 
     // Retourner l'URL relative
     let fileUrl: string;
