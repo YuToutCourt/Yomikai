@@ -227,7 +227,7 @@ export default function AddMangaPage() {
         }
         return true;
       })
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
     setBulkImages(files.map(file => ({ file, preview: URL.createObjectURL(file) })));
   };
