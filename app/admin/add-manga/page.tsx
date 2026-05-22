@@ -66,7 +66,6 @@ export default function AddMangaPage() {
   // État pour upload en masse
   const [bulkSelectedMangaId, setBulkSelectedMangaId] = useState<string>("");
   const [bulkImages, setBulkImages] = useState<Array<{ file: File; preview: string }>>([]);
-  const [bulkData, setBulkData] = useState({ prix: "", editeur: "" });
   const [bulkStartingTome, setBulkStartingTome] = useState<number>(1);
   const [bulkLoading, setBulkLoading] = useState(false);
   const bulkFileInputRef = useRef<HTMLInputElement>(null);
@@ -270,8 +269,6 @@ export default function AddMangaPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mangaId: parseInt(bulkSelectedMangaId),
-          prix: bulkData.prix,
-          editeur: bulkData.editeur,
           startingTome: bulkStartingTome,
           images: imageBase64s,
         }),
@@ -285,7 +282,6 @@ export default function AddMangaPage() {
           toast.error(`Tome ${err.tome} : ${err.error}`);
         });
         setBulkImages([]);
-        setBulkData({ prix: "", editeur: "" });
         if (bulkFileInputRef.current) bulkFileInputRef.current.value = "";
         await fetchMangas();
       } else {
@@ -580,41 +576,15 @@ export default function AddMangaPage() {
                     </Select>
                   </div>
 
-                  <Separator className="bg-white/20" />
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-white">Prix *</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={bulkData.prix}
-                        onChange={(e) => setBulkData({ ...bulkData, prix: e.target.value })}
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        placeholder="7.50"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-white">Éditeur *</Label>
-                      <Input
-                        value={bulkData.editeur}
-                        onChange={(e) => setBulkData({ ...bulkData, editeur: e.target.value })}
-                        className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                        placeholder="Glénat, Ki-oon..."
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-white">Premier tome</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={bulkStartingTome}
-                        onChange={(e) => setBulkStartingTome(parseInt(e.target.value) || 1)}
-                        className="bg-white/10 border-white/20 text-white"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-white">Premier tome</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={bulkStartingTome}
+                      onChange={(e) => setBulkStartingTome(parseInt(e.target.value) || 1)}
+                      className="bg-white/10 border-white/20 text-white"
+                    />
                   </div>
 
                   {/* Zone de sélection des fichiers */}

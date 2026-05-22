@@ -25,9 +25,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { mangaId, prix, editeur, startingTome, images } = body;
+    const { mangaId, startingTome, images } = body;
+    const prix = "0";
+    const editeur = "Non renseigné";
 
-    if (!mangaId || !prix || !editeur || !Array.isArray(images) || images.length === 0) {
+    if (!mangaId || !Array.isArray(images) || images.length === 0) {
       return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
     }
 
